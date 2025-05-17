@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div class="container-xxl py-5 bg-dark hero-header mb-5">
+    <div class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
+        <div class="card bg-dark" style="width: 100%; max-width: 600px;">
+            <div class="card-body">
+                <div class="text-center">
+                    <h3 class="mb-4 text-white">Dynamic Pricing</h3>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <!-- Day Time -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <select class="form-control" name="day_time" id="day_time" required>
+                                    <option value="" disabled selected>Select Day Time</option>
+                                    <option value="Morning">Morning</option>
+                                    <option value="Afternoon">Afternoon</option>
+                                    <option value="Evening">Evening</option>
+                                    <option value="Night">Night</option>
+                                </select>
+                                <label for="day_time">Day Time</label>
+                            </div>
+                        </div>
+
+                        <!-- Season -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <select class="form-control" name="season" id="season" required>
+                                    <option value="" disabled selected>Select Season</option>
+                                    <option value="Peak">Peak</option>
+                                    <option value="Off-peak">Off-Peak</option>
+                                </select>
+                                <label for="season">Season</label>
+                            </div>
+                        </div>
+
+                        <!-- Time Slot -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <select class="form-control" name="time_slot" id="time_slot" required>
+                                    <option value="" disabled selected>Select Time Slot</option>
+                                    <option value="6 AM - 9 AM">6 AM - 9 AM</option>
+                                    <option value="9 AM - 12 PM">9 AM - 12 PM</option>
+                                    <option value="12 PM - 3 PM">12 PM - 3 PM</option>
+                                    <option value="3 PM - 6 PM">3 PM - 6 PM</option>
+                                    <option value="6 PM - 9 PM">6 PM - 9 PM</option>
+                                    <option value="9 PM - 12 AM">9 PM - 12 AM</option>
+                                </select>
+                                <label for="time_slot">Time Slot</label>
+                            </div>
+                        </div>
+
+                        <!-- Weather -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <select class="form-control" name="weather" id="weather" required>
+                                    <option value="" disabled selected>Select Weather</option>
+                                    <option value="Clear">Clear</option>
+                                    <option value="Cloudy">Cloudy</option>
+                                    <option value="Rainy">Rainy</option>
+                                    <option value="Stormy">Stormy</option>
+                                </select>
+                                <label for="weather">Weather</label>
+                            </div>
+                        </div>
+
+                        <!-- Day Type -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <select class="form-control" name="day_type" id="day_type" required>
+                                    <option value="" disabled selected>Select Day Type</option>
+                                    <option value="Weekday">Weekday</option>
+                                    <option value="Weekend">Weekend</option>
+                                </select>
+                                <label for="day_type">Day Type</label>
+                            </div>
+                        </div>
+
+                        <!-- Special Event -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <select class="form-control" name="special_event" id="special_event" required>
+                                    <option value="" disabled selected>Special Event</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                </select>
+                                <label for="special_event">Special Event</label>
+                            </div>
+                        </div>
+
+                        <!-- Turf Quality -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <select class="form-control" name="turf_quality" id="turf_quality" required>
+                                    <option value="" disabled selected>Select Turf Quality</option>
+                                    <option value="Basic">Basic</option>
+                                    <option value="Standard">Standard</option>
+                                    <option value="Premium">Premium</option>
+                                </select>
+                                <label for="turf_quality">Turf Quality</label>
+                            </div>
+                        </div>
+
+                        <!-- Location Demand -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <select class="form-control" name="location_demand" id="location_demand" required>
+                                    <option value="" disabled selected>Select Location Demand</option>
+                                    <option value="1">1</option>
+                                    <option value="6">6</option>
+                                    <option value="4">4</option>
+                                    <option value="9">9</option>
+                                    <option value="8">8</option>
+                                    <option value="3">3</option>
+                                    <option value="10">10</option>
+                                    <option value="2">2</option>
+                                    <option value="5">5</option>
+                                    <option value="7">7</option>
+                                </select>
+                                <label for="location_demand">Location Demand</label>
+                            </div>
+                        </div>
+                        {% if predicted_price is not None %}
+                        <div class="alert alert-success text-center mt-4">
+                            <h4>Predicted Price Per Hour: ₹{{ predicted_price|floatformat:2 }}</h4>
+                        </div>
+                        {% endif %}
+
+
+
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        <button class="btn btn-primary py-3" type="submit">Submit Here</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock body %}

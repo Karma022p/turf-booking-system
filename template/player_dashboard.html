@@ -1,0 +1,668 @@
+{% extends "base.html" %}
+
+{% block body %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Get all the sidebar links
+        const dashboardLink = document.getElementById('dashboardLink');
+        const tasksLink = document.getElementById('tasksLink');
+        const reportsLink = document.getElementById('reportsLink');
+        const settingsLink = document.getElementById('settingsLink');
+        const logoutLink = document.getElementById('logoutLink');
+
+        // Get all the content sections
+        const dashboardContent = document.getElementById('dashboardContent');
+        const tasksContent = document.getElementById('tasksContent');
+        const reportsContent = document.getElementById('reportsContent');
+        const settingsContent = document.getElementById('settingsContent');
+        const logoutContent = document.getElementById('logoutContent');
+
+        // Function to show the selected content and hide the others
+        function showContent(contentToShow) {
+            const allContent = [dashboardContent, tasksContent, reportsContent, settingsContent, logoutContent];
+
+            // Hide all content
+            allContent.forEach(content => {
+                content.style.display = 'none';
+            });
+
+            // Show the selected content
+            contentToShow.style.display = 'block';
+        }
+
+        // Event listeners for sidebar links
+        dashboardLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            showContent(dashboardContent);
+        });
+
+        tasksLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            showContent(tasksContent);
+        });
+
+        reportsLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            showContent(reportsContent);
+        });
+
+        settingsLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            showContent(settingsContent);
+        });
+
+        logoutLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            showContent(logoutContent);
+        });
+
+        // Default content to show (Dashboard)
+        showContent(dashboardContent);
+    });
+
+ // modal for Payment section
+document.addEventListener('DOMContentLoaded', () => {
+    const payButtons = document.querySelectorAll('.pay-button');
+    const modalPlayerName = document.getElementById('modalPlayerName');
+    const modalAmount = document.getElementById('modalAmount');
+    const modalSports = document.getElementById('modalSports'); // New element for sports name
+    const paymentSlip = document.getElementById('paymentSlip');
+    const submitButton = document.querySelector('.btn-primary');
+
+    let currentPlayerName = '';
+    let currentAmount = '';
+    let currentSports = ''; // New variable for sports name
+
+    payButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            currentPlayerName = button.getAttribute('data-player');
+            currentAmount = button.getAttribute('data-amount');
+            currentSports = button.getAttribute('data-sports'); // Get sports name
+            modalPlayerName.textContent = currentPlayerName;
+            modalAmount.textContent = currentAmount;
+            modalSports.textContent = currentSports; // Set sports name in modal
+        });
+    });
+
+    submitButton.addEventListener('click', () => {
+        const formData = new FormData();
+        formData.append('player_name', currentPlayerName);
+        formData.append('sports_name', currentSports); // Append sports name to form data
+        formData.append('amount', currentAmount);
+        formData.append('payment_slip', paymentSlip.files[0]);
+
+        fetch('/save-payment/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                alert(data.message);
+                // Reset form fields
+                paymentSlip.value = '';
+                modalPlayerName.textContent = '';
+                modalAmount.textContent = '';
+                modalSports.textContent = ''; // Clear sports name
+            } else if (data.error) {
+                alert(data.error);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+});
+// end modal for Payment section
+
+// script for booking
+document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".modal").forEach(modal => {
+            const bookingTimeInput = modal.querySelector('[id^="bookingTime"]');
+            const endingTimeInput = modal.querySelector('[id^="endingTime"]');
+            const noOfHoursInput = modal.querySelector('[id^="noOfHours"]');
+            const amountInput = modal.querySelector('[id^="amount"]');
+
+            const ratePerHour = 500; // Rate for one hour
+
+            function calculateHoursAndAmount() {
+                const bookingTime = bookingTimeInput.value;
+                const endingTime = endingTimeInput.value;
+
+                if (bookingTime && endingTime) {
+                    const [startHours, startMinutes] = bookingTime.split(':').map(Number);
+                    const [endHours, endMinutes] = endingTime.split(':').map(Number);
+
+                    const startTime = new Date();
+                    const endTime = new Date();
+
+                    startTime.setHours(startHours, startMinutes);
+                    endTime.setHours(endHours, endMinutes);
+
+                    if (endTime > startTime) {
+                        const diff = (endTime - startTime) / (1000 * 60 * 60); // Difference in hours
+                        const hours = Math.round(diff * 100) / 100; // Round to two decimals if needed
+                        const amount = hours * ratePerHour;
+
+                        noOfHoursInput.value = hours;
+                        amountInput.value = amount.toFixed(2);
+                    } else {
+                        noOfHoursInput.value = '';
+                        amountInput.value = '';
+                        alert("Ending time must be after booking time.");
+                    }
+                }
+            }
+
+            bookingTimeInput.addEventListener('change', calculateHoursAndAmount);
+            endingTimeInput.addEventListener('change', calculateHoursAndAmount);
+        });
+    });
+
+//end script for booking
+
+</script>
+
+<style>
+    /* Reset body and global styles */
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        min-height: 100vh;
+        flex-direction: column;
+    }
+
+    /* Sidebar styles */
+    .sidebar {
+        height: 100vh;
+        width: 250px;
+        background-color: #34AD54;
+        color: white;
+        padding: 20px;
+        position: fixed;
+        top: 100px;
+        left: 0;
+        box-sizing: border-box;
+    }
+
+    .sidebar h2 {
+        margin-top: 0;
+        text-align: center;
+        font-size: 24px;
+    }
+
+    .sidebar ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .sidebar ul li {
+        margin: 20px 0;
+    }
+
+    .sidebar ul li a {
+        color: white;
+        text-decoration: none;
+        font-size: 18px;
+        display: block;
+        padding: 10px;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+    }
+
+    .sidebar ul li a:hover {
+        background-color: #FF9933;
+    }
+
+    /* Content area styles */
+    .content {
+        margin-top: 100px;
+        margin-left: 250px;
+        padding: 20px;
+        flex-grow: 1;
+        background-color: #1a1a2e;
+        color: white;
+        box-sizing: border-box;
+        height: 100vh;
+        overflow: auto;
+        position: relative;
+    }
+
+    .content h1 {
+        margin-top: 0;
+        font-size: 28px;
+    }
+
+    .section-content {
+        display: none;
+    }
+
+    .section-content h1 {
+        font-size: 26px;
+    }
+
+    .section-content p {
+        font-size: 18px;
+        line-height: 1.6;
+    }
+
+    /* Responsive adjustments */
+    @media screen and (max-width: 768px) {
+        .sidebar {
+            width: 200px;
+        }
+
+        .content {
+            margin-left: 200px;
+        }
+
+        .sidebar ul li a {
+            font-size: 16px;
+        }
+    }
+
+    label{
+        color: black;
+    }
+</style>
+
+<div class="sidebar">
+    <h2>Player Dashboard </h2>
+    <ul>
+        <li><a href="#" id="dashboardLink">Book Turf</a></li>
+        <li><a href="#" id="tasksLink">Bookings</a></li>
+        <li><a href="#" id="reportsLink">Feedback</a></li>
+        <li><a href="#" id="settingsLink">Groups</a></li>
+        <li><a href="#" id="logoutLink">Start Match</a></li>
+    </ul>
+</div>
+
+<div class="content">
+    <div id="dashboardContent" class="section-content">
+        <table class="table table-dark">
+            <tbody id="bookingTable">
+                <!-- Team Start -->
+                <div class="container-xxl pt-5 pb-3">
+                    <div class="container">
+                        <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                            <h5 class="section-title ff-secondary text-center text-primary fw-normal">Sports Clubs</h5>
+                        </div>
+                        <div class="row g-4 mt-3">
+                            {% for sports in turf %}
+                                <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                                    <div class="team-item text-center rounded shadow-lg border">
+                                        <div class="overflow-hidden position-relative">
+                                            <img class="img-fluid rounded-top" src="static/img/stumps.png" alt="Player Image">
+                                            <div class="position-absolute top-0 start-0 bg-warning text-dark px-3 py-1 rounded-bottom"></div>
+                                        </div>
+                                        <div class="p-3">
+                                            <h5 class="mb-1 text-white">{{ sports.name }}</h5>
+                                            <p class="small text-muted">{{ sports.city }}</p>
+                                            <div class="d-flex justify-content-center">
+                                                <!-- Button to trigger the modal -->
+                                                <button class="btn btn-warning rounded-pill " 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#bookNowModal{{ sports.id }}">
+                                                    Book Now
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                        
+                                <!-- Modal -->
+                                <div class="modal fade" id="bookNowModal{{ sports.id }}" tabindex="-1" aria-labelledby="modalLabel{{ sports.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="modalLabel{{ sports.id }}">Book {{ sports.name }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form method="POST">
+                                                    {% csrf_token %}
+                                                    <div class="row g-3">
+                                                        <!-- Player Name -->
+                                                        <div class="col-6">
+                                                            <label for="playerName" class="form-label">Player Name</label>
+                                                            <input type="text" class="form-control" id="playerName" name="player_name" required>
+                                                        </div>
+                                                        
+                                                        <!-- Number of Players -->
+                                                        <div class="col-6">
+                                                            <label for="noOfPlayers" class="form-label">No. of Players</label>
+                                                            <input type="number" class="form-control" id="noOfPlayers" name="no_of_players" min="1" required>
+                                                        </div>
+                                                
+                                                        <!-- Game Type -->
+                                                        <div class="col-6">
+                                                            <label for="gameType" class="form-label">Game Type</label>
+                                                            <select class="form-select" id="gameType" name="game_type" required>
+                                                                <option value="Cricket">Cricket</option>
+                                                                <option value="Football">Football</option>
+                                                                <option value="Badminton">Badminton</option>
+                                                            </select>
+                                                        </div>
+                                                
+                                                        <!-- Booking Date -->
+                                                        <div class="col-6">
+                                                            <label for="bookingDate" class="form-label">Booking Date</label>
+                                                            <input type="date" class="form-control" id="bookingDate" name="booking_date" required>
+                                                        </div>
+                                                
+                                                        <!-- Booking Time -->
+                                                        <div class="col-6">
+                                                            <label for="bookingTime" class="form-label">Booking Time</label>
+                                                            <input type="time" class="form-control" id="bookingTime" name="booking_time" required>
+                                                        </div>
+                                                
+                                                        <!-- Ending Time -->
+                                                        <div class="col-6">
+                                                            <label for="endingTime" class="form-label">Ending Time</label>
+                                                            <input type="time" class="form-control" id="endingTime" name="ending_time" required>
+                                                        </div>
+                                                
+                                                        <!-- No. of Hours -->
+                                                        <div class="col-6">
+                                                            <label for="noOfHours" class="form-label">No. of Hours</label>
+                                                            <input type="number" class="form-control" id="noOfHours" name="no_of_hours" min="1" required>
+                                                        </div>
+                                                
+                                                        <!-- Amount -->
+                                                        <div class="col-6">
+                                                            <label for="amount" class="form-label">Amount</label>
+                                                            <input type="number" class="form-control" id="amount" name="amount" min="0" required>
+                                                        </div>
+                                                
+                                                        <!-- Sports Club (Hidden field to associate the sports club) -->
+                                                        <input type="hidden" name="sports_club" value="{{ sports.id }}">
+                                                
+                                                    </div>
+                                                    <div class="text-end mt-3">
+                                                        <button type="submit" class="btn btn-warning">Submit</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                </div>
+                <!-- Team End -->
+            </tbody>
+        </table>
+    </div>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Get today's date in YYYY-MM-DD format
+            let today = new Date().toISOString().split('T')[0];
+    
+            // Set the minimum date for the booking date field
+            document.querySelectorAll("#bookingDate").forEach(function (input) {
+                input.setAttribute("min", today);
+            });
+        });
+    </script>
+
+
+
+
+
+    <!-- booking -->
+    <div id="tasksContent" class="section-content" style="display: none;">
+        <h1 class="text-white">Bookings</h1>
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Player Name</th>
+                    <th scope="col">Sports/ Turf </th>
+                    <th scope="col">Sports</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Booking Time</th>
+                    <th scope="col">Ending Time</th>
+                    <th scope="col">Hours</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Actions</th>
+                    <th scope="col">Payment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in book_details %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ booking.player_name }}</td>
+                    <td>{{ booking.sports_club.name }}</td>
+                    <td>{{ booking.game_type }}</td>
+                    <td>{{ booking.booking_date }}</td>
+                    <td>{{ booking.booking_time }}</td>
+                    <td>{{ booking.ending_time }}</td>
+                    <td>{{ booking.no_of_hours }}</td>
+                    <td>{{ booking.amount }}</td>
+                    <td class="booking-status">
+                        {{ booking.status }}
+                    </td>
+                    <td>
+                        {% if booking.status == 'In Process...' %}
+                        <a href="https://gstempire.com/payment/" class="payment-link">
+                            <button 
+                                class="btn btn-outline-success pay-button" 
+                                data-player="{{ booking.player_name }}" 
+                                data-amount="{{ booking.amount }}"
+                                data-sports="{{ booking.sports_club.name }}">
+                                Pay Now
+                            </button>
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="11">No bookings found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const buttons = document.querySelectorAll(".pay-button");
+            buttons.forEach(button => {
+                button.addEventListener("click", function (e) {
+                    const row = this.closest("tr");
+                    const statusCell = row.querySelector(".booking-status");
+                    if (statusCell.textContent.trim() === "In Process...") {
+                        // Delay for 10 seconds (10000 milliseconds)
+                        setTimeout(() => {
+                            statusCell.textContent = "Booked";
+                        }, 10000); // 10 seconds
+                    }
+                });
+            });
+        });
+        </script>
+<!-- end booking -->
+    <!-- payment modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentModalLabel">Confirm Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                    <p style="color:#1a1a2e;"><strong>Sports Name:</strong> <span id="modalSports"></span></p>
+                    <p style="color:#1a1a2e;"><strong>Player Name:</strong> <span id="modalPlayerName"></span></p>
+                    <p style="color:#1a1a2e;"><strong>Amount:</strong> ₹<span id="modalAmount"></span></p>
+                    <!-- <p style="color:#1a1a2e;">Are you sure you want to proceed with the payment?</p> -->
+                    <div class="d-flex justify-content-center align-items-center mb-3">
+                        <img src="static/img/qr.jpeg" alt="QR Code" width="50%">
+                    </div>
+                    <div class="mt-3">
+                        <label for="paymentSlip" class="form-label" style="color:#1a1a2e;"><strong>Upload Payment Slip</strong></label>
+                        <input type="file" id="paymentSlip" class="form-control" accept=".jpg, .jpeg, .png, .pdf">
+                    </div>
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" type="submit" class="btn btn-primary">Done</button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+    <!-- endpayment -->
+
+    <!-- feedback -->
+    <div id="reportsContent" class="section-content" style="display: none;">
+        <h1 class="text-white">Feedback</h1>
+        <p>Here you can view reports.</p>
+        <form action="{% url 'feedback_view' %}" method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="feedbackInput" class="form-label text-white">Your Feedback</label>
+               
+                <!-- Display the player's name in a read-only input field -->
+                <input id="feedbackInput" name="feedbackInput" type="text" class="form-control" value= '{{player_name}}' readonly required>
+              
+            </div>
+            
+            
+            <div class="mb-3">
+                <label for="sportsSelect" class="form-label text-white">Select Sports</label>
+                <select id="sportsSelect" name="sportsSelect" class="form-select" required>
+                    <option value="" disabled selected>Select a sport</option>
+                    {% for i in turf %}
+                        <option value="{{ i.name }}">{{ i.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="feedbackTextarea" class="form-label text-white">Your Feedback</label>
+                <textarea id="feedbackTextarea" name="feedbackTextarea" class="form-control" rows="4" required>
+                    {{player}}
+                </textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+    <!-- endfeedback -->
+
+<!-- club groups -->
+<div id="settingsContent" class="section-content">
+    <h1 class="text-white">Clubs Groups</h1>
+    <p>Where passion meets teamwork for victory!</p>
+    
+    <!-- Chat Group 1 -->
+    <div class="chat-group text-white">
+        <h2 class="text-white">The Game Changers</h2>
+        <p>Redefining the rules, one play at a time!</p>
+        <button class="join-btn">
+            <a href="{% url 'grp' group_name='The Game Changers' %}" style="color: white;">Join Group</a>
+        </button>
+    </div>
+
+    <!-- Chat Group 2 -->
+    <div class="chat-group text-white">
+        <h2 class="text-white">The Winning Squad</h2>
+        <p>United we play, victorious we stay!</p>
+        <button class="join-btn">
+            <a href="{% url 'grp' group_name='The Winning Squad' %}" style="color: white;">Join Group</a>
+        </button>
+    </div>
+
+    <!-- Chat Group 3 -->
+    <div class="chat-group text-white">
+        <h2 class="text-white">Legends in Action</h2>
+        <p>Making history with every move!</p>
+        <button class="join-btn">
+            <a href="{% url 'grp' group_name='Legends in Action' %}" style="color: white;">Join Group</a>
+        </button>
+    </div>
+</div>
+
+<style>
+.section-content {
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.text-white {
+    color: white;
+    text-align: center;
+}
+
+.chat-group {
+    background-color: #444;
+    color: white;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.chat-group h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.chat-group p {
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+.join-btn {
+    background-color: #00b894;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.join-btn:hover {
+    background-color: #019874;
+}
+</style>
+
+<!-- end club groups -->
+
+    <div id="logoutContent" class="section-content" style="display: none;">
+        <div class="container-xxl py-5 bg-dark hero-header mb-5">
+            <div class="container d-flex flex-column align-items-center" style="margin-top: 50px; min-height: 70vh;">
+                <h5 class="text-center text-white my-4">Scoring a match on CricScore is free</h5>
+        
+                <div class="row justify-content-center text-center">
+                    <div class="col-12 col-md-4 mb-4">
+                        <div class="d-flex justify-content-center align-items-center bg-warning rounded-circle mx-auto" style="width: 4rem; height: 4rem;">
+                            <i class="fas fa-plus text-white"></i>
+                        </div>
+                        <a href="team_a" class="btn btn-outline-success mt-3 ">SELECT TEAM A</a>
+                    </div>
+        
+                    <div class="col-12 col-md-4 mb-4">
+                        <div class="d-flex justify-content-center align-items-center bg-warning rounded-circle mx-auto" style="width: 4rem; height: 4rem;">
+                            <i class="fas fa-plus text-white"></i>
+                        </div>
+                        <a href="team_b" class="btn btn-outline-success mt-3 ">SELECT TEAM B</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock body %}

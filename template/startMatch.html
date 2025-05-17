@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block body %}
+<style>
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .circle-icon {
+        width: 4rem;
+        height: 4rem;
+        background-color: #FEA116;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+        font-size: 1.5rem;
+    }
+
+    .selected {
+        background-color: #28a745 !important;
+    }
+
+    @media (max-width: 768px) {
+        .circle-icon {
+            width: 3rem;
+            height: 3rem;
+            font-size: 1.25rem;
+        }
+
+        .card {
+            max-width: 180px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .circle-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            font-size: 1rem;
+        }
+
+        .card {
+            max-width: 150px;
+        }
+
+        h6 {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
+<div class="container-xxl py-5 hero-header" style="min-height: 100vh;">
+    <div class="card mt-5 mx-auto" style="max-width: 100%; height: 90vh;">
+        <div class="card-body d-flex flex-column justify-content-center">
+            <h6 class="card-title text-center">Who won the toss?</h6>
+            <div class="row mb-4">
+                <div class="col-6 d-flex justify-content-center">
+                    <div class="card shadow-lg rounded text-center mx-auto w-100 team-card" 
+                         data-team="{{ team_a_name }}"
+                         data-player1="{{ team_a_player1 }}"
+                         data-player2="{{ team_a_player2 }}">
+                        <div class="card-body">
+                            <div class="circle-icon mb-3 team-select">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <h6>Team A</h6>
+                            <h5>{{ team_a_name }}</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 d-flex justify-content-center">
+                    <div class="card shadow-lg rounded text-center mx-auto w-100 team-card" 
+                         data-team="{{ team_b_name }}"
+                         data-player1="{{ team_b_player1 }}"
+                         data-player2="{{ team_b_player2 }}">
+                        <div class="card-body">
+                            <div class="circle-icon mb-3 team-select">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <h6>Team B</h6>
+                            <h5>{{ team_b_name }}</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="card-title text-center">Winner of the toss elected to?</h6>
+            <div class="row mb-4">
+                <div class="col-6 d-flex justify-content-center">
+                    <div class="card shadow-lg rounded text-center mx-auto w-100 choice-card" data-choice="Batting">
+                        <div class="card-body">
+                            <div class="circle-icon mb-3 choice-select">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <h6>Batting</h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 d-flex justify-content-center">
+                    <div class="card shadow-lg rounded text-center mx-auto w-100 choice-card" data-choice="Bowling">
+                        <div class="card-body">
+                            <div class="circle-icon mb-3 choice-select">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <h6>Bowling</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">   
+                <div class="col-12 d-flex justify-content-center">
+                    <button type="button" class="btn btn-primary w-75" id="playButton" disabled>Let's Play</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let selectedTeam = null;
+        let selectedChoice = null;
+        
+        // Team selection
+        const teamCards = document.querySelectorAll('.team-card');
+        teamCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove selected class from all team cards
+                teamCards.forEach(c => {
+                    c.querySelector('.team-select').classList.remove('selected');
+                });
+                
+                // Add selected class to clicked card
+                this.querySelector('.team-select').classList.add('selected');
+                selectedTeam = this.getAttribute('data-team');
+                
+                // Store player information
+                sessionStorage.setItem('player1', this.getAttribute('data-player1'));
+                sessionStorage.setItem('player2', this.getAttribute('data-player2'));
+                
+                checkSelections();
+            });
+        });
+        
+        // Choice selection
+        const choiceCards = document.querySelectorAll('.choice-card');
+        choiceCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove selected class from all choice cards
+                choiceCards.forEach(c => {
+                    c.querySelector('.choice-select').classList.remove('selected');
+                });
+                
+                // Add selected class to clicked card
+                this.querySelector('.choice-select').classList.add('selected');
+                selectedChoice = this.getAttribute('data-choice');
+                
+                checkSelections();
+            });
+        });
+        
+        // Check if both selections are made
+        function checkSelections() {
+            const playButton = document.getElementById('playButton');
+            if (selectedTeam && selectedChoice) {
+                playButton.disabled = false;
+            } else {
+                playButton.disabled = true;
+            }
+        }
+        
+        // Handle play button click
+        document.getElementById('playButton').addEventListener('click', function() {
+            // Store selections in sessionStorage to pass to scoreboard
+            sessionStorage.setItem('selectedTeam', selectedTeam);
+            sessionStorage.setItem('selectedChoice', selectedChoice);
+            
+            // Also store in Django session via AJAX
+            fetch('/set-selected-team/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    selected_team: selectedTeam
+                })
+            }).then(response => {
+                // Redirect to scoreboard page
+                window.location.href = "{% url 'scoreboard' %}";
+            });
+        });
+    });
+</script>
+
+{% endblock body %}

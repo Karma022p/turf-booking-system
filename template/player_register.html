@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div class="container-xxl py-5 bg-dark hero-header mb-5">
+    <div class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
+        <div class="card bg-dark" style="width: 100%; max-width: 600px;">
+            <div class="card-body">
+                <div class="text-center">
+                    <h3 class="mb-4 text-white">Player Registration:</h3>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+
+                        <!-- Player Name -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" name="name" id="name" placeholder="Enter Name" required>
+                                <label for="name">Name of Player</label>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <input type="email" class="form-control" name="username" id="username" placeholder="Enter Email" required>
+                                <label for="username">Email</label>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" name="password" id="password" placeholder="Enter Password" required>
+                                <label for="password">Password</label>
+                            </div>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" name="confirm_password" id="confirm_password" placeholder="Confirm Password" required>
+                                <label for="confirm_password">Confirm Password</label>
+                            </div>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <input type="text"
+                                       class="form-control"
+                                       name="phone"
+                                       id="phone"
+                                       placeholder="Phone Number"
+                                       maxlength="10"
+                                       required>
+                                <label for="phone">Phone Number</label>
+                                <div class="text-danger mt-1" id="phoneError" style="display:none;">
+                                    Please enter a valid 10-digit phone number starting with 7, 8, or 9.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pincode -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" name="pincode" id="pincode" placeholder="Pincode" required>
+                                <label for="pincode">Pincode</label>
+                            </div>
+                        </div>
+
+                        <!-- Country Dropdown -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <select class="form-select" id="country" name="country" required></select>
+                                <label for="country">Country</label>
+                            </div>
+                        </div>
+
+                        <!-- State Dropdown -->
+                        <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <select class="form-select" id="state" name="state" required></select>
+                                <label for="state">State</label>
+                            </div>
+                        </div>
+
+                        <!-- City Dropdown -->
+                        <div class="col-12">
+                            <div class="form-floating mb-3">
+                                <select class="form-select" id="city" name="city" required></select>
+                                <label for="city">City</label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        <button class="btn btn-primary py-3" type="submit">Register Here</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Phone validation script -->
+<script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const phoneInput = document.getElementById('phone');
+        const phoneError = document.getElementById('phoneError');
+        const phone = phoneInput.value.trim();
+
+        const phonePattern = /^[7-9]{1}[0-9]{9}$/;
+
+        if (!phonePattern.test(phone)) {
+            e.preventDefault();
+            phoneError.style.display = 'block';
+            phoneInput.classList.add('is-invalid');
+        } else {
+            phoneError.style.display = 'none';
+            phoneInput.classList.remove('is-invalid');
+        }
+    });
+</script>
+
+<!-- Dynamic dropdown scripts -->
+<script>
+    // Load countries
+    window.onload = function () {
+        fetch('https://countriesnow.space/api/v0.1/countries/positions')
+            .then(response => response.json())
+            .then(data => {
+                const countryDropdown = document.getElementById('country');
+                countryDropdown.innerHTML = `<option selected disabled>Select Country</option>`;
+                data.data.forEach(country => {
+                    countryDropdown.innerHTML += `<option value="${country.name}">${country.name}</option>`;
+                });
+            });
+    };
+
+    // Load states based on country
+    document.getElementById('country').addEventListener('change', function () {
+        const country = this.value;
+        fetch('https://countriesnow.space/api/v0.1/countries/states', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ country: country })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const stateDropdown = document.getElementById('state');
+            stateDropdown.innerHTML = `<option selected disabled>Select State</option>`;
+            document.getElementById('city').innerHTML = `<option selected disabled>Select City</option>`;
+            data.data.states.forEach(state => {
+                stateDropdown.innerHTML += `<option value="${state.name}">${state.name}</option>`;
+            });
+        });
+    });
+
+    // Load cities based on state
+    document.getElementById('state').addEventListener('change', function () {
+        const country = document.getElementById('country').value;
+        const state = this.value;
+        fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ country: country, state: state })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const cityDropdown = document.getElementById('city');
+            cityDropdown.innerHTML = `<option selected disabled>Select City</option>`;
+            data.data.forEach(city => {
+                cityDropdown.innerHTML += `<option value="${city}">${city}</option>`;
+            });
+        });
+    });
+</script>
+
+{% endblock body %}

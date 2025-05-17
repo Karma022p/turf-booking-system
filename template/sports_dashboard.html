@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block body %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all the sidebar links
+        const dashboardLink = document.getElementById('dashboardLink');
+        const tasksLink = document.getElementById('tasksLink');
+        const reportsLink = document.getElementById('reportsLink');
+        const settingsLink = document.getElementById('settingsLink');
+        const logoutLink = document.getElementById('logoutLink');
+
+        // Get all the content sections
+        const dashboardContent = document.getElementById('dashboardContent');
+        const tasksContent = document.getElementById('tasksContent');
+        const reportsContent = document.getElementById('reportsContent');
+        const settingsContent = document.getElementById('settingsContent');
+        const logoutContent = document.getElementById('logoutContent');
+
+        // Function to show the selected content and hide the others
+        function showContent(contentToShow) {
+            const allContent = [dashboardContent, tasksContent, reportsContent, settingsContent, logoutContent];
+            
+            // Hide all content
+            allContent.forEach(content => {
+                content.style.display = 'none';
+            });
+
+            // Show the selected content
+            contentToShow.style.display = 'block';
+        }
+
+        // Event listeners for sidebar links
+        dashboardLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            showContent(dashboardContent);
+        });
+
+        tasksLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            showContent(tasksContent);
+        });
+
+        reportsLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            showContent(reportsContent);
+        });
+
+        settingsLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            showContent(settingsContent);
+        });
+
+        logoutLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            showContent(logoutContent);
+        });
+
+        // Default content to show (Dashboard)
+        showContent(dashboardContent);
+    });
+
+
+    // accept reject logic
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const actionButtons = document.querySelectorAll('.btn-action');
+
+        actionButtons.forEach(button => {
+            button.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const row = button.closest('tr');
+                const bookingId = row.getAttribute('data-booking-id');
+                const action = button.getAttribute('data-action'); // Accept or Reject
+
+                if (!bookingId || !action) {
+                    alert('Booking ID or action not found!');
+                    return;
+                }
+
+                // Send the AJAX request to update the backend
+                fetch('/update_booking_status/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ booking_id: bookingId, status: action })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the column to display the new status
+                        row.querySelector('.action-column').innerText = data.status;
+                    } else {
+                        alert(data.error || 'Error updating booking. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error updating booking. Please try again.');
+                });
+            });
+        });
+    });
+</script>
+
+<style>
+    /* Reset body and global styles */
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        min-height: 100vh;
+        flex-direction: column;
+    }
+
+    /* Sidebar styles */
+    .sidebar {
+        height: 100vh;
+        width: 250px;
+        background-color: #34AD54;
+        color: white;
+        padding: 20px;
+        position: fixed;
+        top: 100px;
+        left: 0;
+        box-sizing: border-box;
+    }
+
+    .sidebar h2 {
+        margin-top: 0;
+        text-align: center;
+        font-size: 24px;
+    }
+
+    .sidebar ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .sidebar ul li {
+        margin: 20px 0;
+    }
+
+    .sidebar ul li a {
+        color: white;
+        text-decoration: none;
+        font-size: 18px;
+        display: block;
+        padding: 10px;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+    }
+
+    .sidebar ul li a:hover {
+        background-color: #FF9933;
+    }
+
+    /* Content area styles */
+    .content {
+        margin-top: 100px;
+        margin-left: 250px;
+        padding: 20px;
+        flex-grow: 1;
+        background-color: #1a1a2e;
+        color: white;
+        box-sizing: border-box;
+        height: 100vh;
+        overflow: auto;
+        position: relative;
+    }
+
+    .content h1 {
+        margin-top: 0;
+        font-size: 28px;
+    }
+
+    .section-content {
+        display: none;
+    }
+
+    .section-content h1 {
+        font-size: 26px;
+    }
+
+    .section-content p {
+        font-size: 18px;
+        line-height: 1.6;
+    }
+
+    /* Responsive adjustments */
+    @media screen and (max-width: 768px) {
+        .sidebar {
+            width: 200px;
+        }
+
+        .content {
+            margin-left: 200px;
+        }
+
+        .sidebar ul li a {
+            font-size: 16px;
+        }
+    }
+</style>
+
+<div class="sidebar">
+    <h2>Sports Dashboard</h2>
+    <ul>
+        <li><a href="#" id="dashboardLink">Bookings</a></li>
+        <li><a href="#" id="tasksLink">Payments</a></li>
+        <li><a href="#" id="reportsLink">Feedback</a></li>
+        <li><a href="#" id="settingsLink">Settings</a></li>
+        <li><a href="#" id="logoutLink">Logout</a></li>
+    </ul>
+</div>
+
+<div class="content">
+    <div id="dashboardContent" class="section-content">
+        <h1 class="text-white">Turf Bookings  :</h1>
+        <table class="table table-dark">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Player Name</th>
+                <th scope="col">Sports/ Turf </th>
+                <th scope="col">Date</th>
+                <th scope="col">Booking Time</th>
+                <th scope="col">Ending Time</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="bookingTable">
+                {% for data in booking_details %}
+                <tr data-booking-id="{{ data.id }}">
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td>{{ data.player_name }}</td>
+                    <td>{{ data.sports_club }}</td>
+                    <td>{{ data.booking_date }}</td>
+                    <td>{{ data.booking_time }}</td>
+                    <td>{{ data.ending_time }}</td>
+                    <td class="action-column">
+                        {% if data.status == 'Pending' %}
+                            <button class="btn btn-success btn-sm btn-action" data-action="In Process...">Accept</button>
+                            <button class="btn btn-danger btn-sm btn-action" data-action="Rejected">Reject</button>
+                        {% else %}
+                            {{ data.status }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+          </table>
+    </div>
+    <div id="tasksContent" class="section-content" style="display: none;">
+        <h1 class="text-white">Payment Stuff</h1>
+        <table class="table text-white">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Player Name</th>
+                <th scope="col">Sports Name</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Playment Slip</th>
+              </tr>
+            </thead>
+            <tbody>
+                {% for paymentss in pay %}
+                  
+              <tr>
+                <th scope="row">1</th>
+                <td>{{paymentss.player_name}}</td>
+                <td>{{paymentss.sports_name}}</td>
+                <td>{{paymentss.amount}}</td>
+                <!-- <td>{{paymentss.payment_slip}}</td> -->
+                <td>
+                    {% if paymentss.payment_slip %}
+                        <a href="{{ paymentss.payment_slip.url }}" target="_blank" class="btn btn-outline-primary btn-sm">View</a>
+                    {% else %}
+                        <span>No Slip</span>
+                    {% endif %}
+                </td>
+              </tr>
+              
+              {% endfor %}
+            </tbody>
+          </table>
+    </div>
+    <div id="reportsContent" class="section-content" style="display: none;">
+        <h1 class="text-white">Feedback</h1>
+        <table class="table text-white">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Player Name</th>
+                <th scope="col">Sports</th>
+                <th scope="col">Feedback</th>
+                <th scope="col">Rating</th>
+              </tr>
+            </thead>
+            <tbody>
+                {% if feed %}
+                    {% for feedbck in feed %}
+                        <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td>{{ feedbck.player }}</td>
+                            <td>{{ feedbck.sports }}</td>
+                            <td>{{ feedbck.feedback_text }}</td>
+                            <td>{{ feedbck.rating }}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4">No feedback available.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+          </table>
+    </div>
+    <div id="settingsContent" class="section-content" style="display: none;">
+        <h1 class="text-white">Settings</h1>
+        <p>Here you can adjust settings.</p>
+    </div>
+    <div id="logoutContent" class="section-content" style="display: none;">
+        <h1>Logout</h1>
+        <p>You have been logged out.</p>
+    </div>
+</div>
+
+{% endblock body %}

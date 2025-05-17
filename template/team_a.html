@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+{% block body %}
+
+<style>
+    .selectable-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .selectable-card.selected {
+        border: 2px solid blue;
+        background-color: rgba(0, 0, 255, 0.1);
+    }
+    
+    .player-checkbox {
+        display: none;
+    }
+    
+    .player-label {
+        display: block;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #343a40;
+        color: white;
+        transition: all 0.3s;
+    }
+    
+    .player-checkbox:checked + .player-label {
+        background-color: #28a745;
+        transform: scale(1.02);
+    }
+    
+    .search-highlight {
+        background-color: yellow;
+        color: black;
+    }
+</style>
+
+<div class="container-xxl py-5 bg-dark hero-header mb-5">
+    <div class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
+        <div class="card bg-dark" style="width: 100%; max-width: 400px; margin-top: -200px;">
+            <div class="card-body">
+                <div class="text-center">
+                    <h4 class="mb-4 text-white">Select Team A</h4>
+                </div>
+                <form method="post" action="{% url 'team_a' %}" id="teamForm">
+                    {% csrf_token %}
+                    <div class="input-group position-relative mb-3">
+                        <span class="input-group-text bg-dark text-white border-0">
+                            <i class="fas fa-search mt-2"></i>
+                        </span>
+                        <input class="form-control" type="search" placeholder="Quick Search" aria-label="Search" name="q" id="searchInput">
+                        <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#addTeamModal">Add Team</button>
+                    </div>
+
+                    <div id="cardContainer">
+                        {% for team in teams_a %}
+                        <div class="card mx-auto mt-2 rounded h-2 selectable-card" data-team-id="{{ team.id }}">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="card-header">
+                                        <div class="col-12 team-name">{{ team.ateamName }}</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <i class="fas fa-map-marker-alt"></i> {{ team.ateamCity }}
+                                    </div>
+                                    <div class="col-6">
+                                        <i class="fas fa-user"></i> {{ team.acaptainName }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-white mt-3">No teams available. Add a team first.</div>
+                        {% endfor %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Player Selection Modal -->
+<div class="modal fade" id="playerSignInModal" tabindex="-1" aria-labelledby="playerSignInModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title text-white" id="playerSignInModalLabel">Add Players to Team</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: wheat;"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <span class="input-group-text bg-dark text-white border-0">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" class="form-control" id="playerSearch" placeholder="Search players...">
+                </div>
+                
+                <form method="post" id="playerSignInForm">
+                    {% csrf_token %}
+                    <div id="playerDetailsContainer" style="max-height: 60vh; overflow-y: auto;">
+                        {% for player in players %}
+                        <input type="checkbox" class="player-checkbox" name="selected_players" value="{{ player.id }}" id="player-{{ player.id }}">
+                        <label for="player-{{ player.id }}" class="player-label mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="player-name">{{ player.name }}</span>
+                                <span class="text-muted">{{ player.phoneNumber }}</span>
+                            </div>
+                        </label>
+                        {% empty %}
+                        <div class="text-center text-white">No players available</div>
+                        {% endfor %}
+                    </div>
+                    <div class="d-grid mt-3">
+                        <button class="btn btn-primary py-2" type="submit">Add Players & Continue to Team B</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Team Modal -->
+<div class="modal fade" id="addTeamModal" tabindex="-1" aria-labelledby="addTeamModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTeamModalLabel">Add Team A</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'team_a' %}" id="addTeamForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="teamName" class="form-label">Team Name</label>
+                            <input type="text" class="form-control" id="teamName" name="teamName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="teamCity" class="form-label">City/Town</label>
+                            <input type="text" class="form-control" id="teamCity" name="teamCity" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="captainNumber" class="form-label">Captain Number</label>
+                            <input type="text" class="form-control" id="captainNumber" name="captainNumber" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="captainName" class="form-label">Captain Name</label>
+                            <input type="text" class="form-control" id="captainName" name="captainName" required>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Add Team</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const teamModal = new bootstrap.Modal(document.getElementById('playerSignInModal'));
+        const addTeamModal = new bootstrap.Modal(document.getElementById('addTeamModal'));
+        const searchInput = document.getElementById('searchInput');
+        const playerSearch = document.getElementById('playerSearch');
+        let currentTeamId = null;
+
+        // Team search functionality
+        searchInput.addEventListener('input', function () {
+            const query = this.value.toLowerCase();
+            document.querySelectorAll('.selectable-card').forEach(card => {
+                const name = card.querySelector('.team-name').textContent.toLowerCase();
+                if (name.includes(query)) {
+                    card.style.display = '';
+                    // Highlight matching text
+                    const text = card.querySelector('.team-name');
+                    text.innerHTML = text.textContent.replace(
+                        new RegExp(query, 'gi'), 
+                        match => `<span class="search-highlight">${match}</span>`
+                    );
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Player search functionality
+        playerSearch.addEventListener('input', function () {
+            const query = this.value.toLowerCase();
+            document.querySelectorAll('.player-label').forEach(label => {
+                const name = label.querySelector('.player-name').textContent.toLowerCase();
+                if (name.includes(query)) {
+                    label.style.display = 'block';
+                    // Highlight matching text
+                    const text = label.querySelector('.player-name');
+                    text.innerHTML = text.textContent.replace(
+                        new RegExp(query, 'gi'), 
+                        match => `<span class="search-highlight">${match}</span>`
+                    );
+                } else {
+                    label.style.display = 'none';
+                }
+            });
+        });
+
+        // Team card selection
+        document.querySelectorAll('.selectable-card').forEach(card => {
+            card.addEventListener('click', function () {
+                document.querySelectorAll('.selectable-card').forEach(c => {
+                    c.classList.remove('selected');
+                });
+                this.classList.add('selected');
+                
+                currentTeamId = this.getAttribute("data-team-id");
+                const teamName = this.querySelector(".team-name").textContent;
+                document.getElementById("playerSignInModalLabel").textContent = `Add Players to ${teamName}`;
+                teamModal.show();
+            });
+        });
+
+        // Handle form submission for adding players
+        document.getElementById('playerSignInForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            
+            const selectedPlayers = Array.from(
+                document.querySelectorAll('input[name="selected_players"]:checked')
+            ).map(input => input.value);
+
+            if (selectedPlayers.length === 0) {
+                alert("Please select at least one player.");
+                return;
+            }
+
+            fetch("{% url 'add_players_to_team' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    team_id: currentTeamId,
+                    player_ids: selectedPlayers,
+                    redirect_to: 'team_b'
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                    }
+                } else {
+                    alert("Error: " + (data.message || "Unknown error occurred"));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("An error occurred while adding players. Please try again.");
+            });
+        });
+
+        // Handle add team form submission
+        document.getElementById('addTeamForm').addEventListener('submit', function(event) {
+            const form = event.target;
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+                form.classList.add('was-validated');
+                return;
+            }
+        });
+    });
+</script>
+{% endblock %}
