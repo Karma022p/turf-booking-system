@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Chat</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* Chat UI Styles */
+        body {
+            background-color: #0F172B;
+            font-family: Arial, sans-serif;
+        }
+        .chat-container {
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .chat-header {
+            background-color: #FEA116;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        .chat-body {
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+        .message {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        .message.sent {
+            justify-content: flex-end;
+        }
+        .message .text {
+            display: inline-block;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        .message.sent .text {
+            background-color: #FEA116;
+            color: white;
+        }
+        .message.received .text {
+            background-color: #f1f1f1;
+            color: black;
+        }
+        .chat-footer {
+            padding: 10px;
+            background-color: #f4f5f7;
+            border-top: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+        }
+        .chat-footer input {
+            flex: 1;
+            border-radius: 20px;
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+        }
+        .chat-footer button {
+            border-radius: 50%;
+            padding: 10px;
+            background-color: #FEA116;
+            color: white;
+            border: none;
+            height: 40px;
+            width: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            {{ group_name }}
+        </div>
+        <div class="chat-body">
+            {% for message in messages %}
+                <div class="message {% if message.sender == sender_name %}sent{% else %}received{% endif %}">
+                    <span class="text">{{ message.sender }}: {{ message.message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        <form method="POST" class="chat-footer" id="chatForm">
+            {% csrf_token %}
+            <input type="text" name="message" placeholder="Type a message..." required>
+            <button type="submit"><i class="material-icons">send</i></button>
+        </form>
+    </div>
+
+    <script>
+        const chatForm = document.getElementById("chatForm");
+        chatForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(chatForm);
+            const response = await fetch("{% url 'grp' group_name=group_name %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+            });
+            const data = await response.json();
+            if (data.success) {
+                window.location.reload(); // Reload to fetch new messages
+            } else {
+                alert(data.message);
+            }
+        });
+    </script>
+</body>
+</html>

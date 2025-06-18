@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="container">
+  <div class="header">
+    <span class="back-arrow">&larr;</span>
+    <span class="title" id="teamTitle">Abc</span>
+    <span class="settings">&#9881;</span>
+  </div>
+  <div class="scoreboard">
+    <div class="score" id="score">0/0 (0/10)</div>
+    <div class="subtext" id="tossResult"></div>
+  </div>
+  <div class="players">
+    {% for player in team_players %}
+    <div class="player">
+        <div class="name" id="player{{ forloop.counter }}">{{ player.name }}</div>
+        <div class="replace">PLAYER</div>
+    </div>
+    {% endfor %}
+</div>
+  <div class="score-input">
+    <button class="score-btn">0</button>
+    <button class="score-btn">1</button>
+    <button class="score-btn">2</button>
+    <button class="score-btn out">OUT</button>
+    <button class="score-btn">3</button>
+    <button class="score-btn">4<br>FOUR</button>
+    <button class="score-btn">6<br>SIX</button>
+    <button class="score-btn">UNDO</button>
+    <button class="score-btn">WD</button>
+    <button class="score-btn">NB</button>
+    <button class="score-btn">BYE</button>
+    <button class="score-btn">LB</button>
+  </div>
+  <div class="shortcuts">Scoring Shortcuts &uarr;</div>
+</div>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #1a1a1a;
+    color: white;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .container {
+    margin-top: 100px;
+    width: 920px;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background: #333;
+    position: relative;
+  }
+
+  .header .back-arrow {
+    position: absolute;
+    left: 15px;
+    cursor: pointer;
+  }
+
+  .header .title {
+    flex-grow: 1;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.2em;
+  }
+
+  .header .settings {
+    position: absolute;
+    right: 15px;
+    cursor: pointer;
+  }
+
+  .scoreboard {
+    text-align: center;
+    padding: 20px;
+  }
+
+  .scoreboard .score {
+    font-size: 2em;
+    margin: 10px 0;
+  }
+
+  .scoreboard .subtext {
+    font-size: 0.9em;
+    color: #aaa;
+  }
+
+  .players {
+    display: flex;
+    justify-content: space-between;
+    background-color: #1f1f1f;
+    padding: 15px;
+  }
+
+  .player {
+    text-align: center;
+    color: #f3f3f3;
+  }
+
+  .player .name {
+    color: #ffa500;
+    font-weight: bold;
+  }
+
+  .player .replace {
+    color: #00bfff;
+    font-size: 0.9em;
+    cursor: pointer;
+  }
+
+  .score-input {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 15px;
+    background-color: #333;
+  }
+
+  .score-input button {
+    padding: 10px;
+    font-size: 1em;
+    border: none;
+    background-color: #444;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .score-input button.out {
+    color: red;
+  }
+
+  .shortcuts {
+    text-align: center;
+    background-color: #444;
+    padding: 10px;
+    font-size: 0.9em;
+    color: #00bfff;
+  }
+</style>
+
+<script>
+  // Get the selected team, choice, and players from sessionStorage
+  const selectedTeam = sessionStorage.getItem('selectedTeam');
+  const selectedChoice = sessionStorage.getItem('selectedChoice');
+  const player1 = sessionStorage.getItem('player1');
+  const player2 = sessionStorage.getItem('player2');
+  
+  // Update the UI with the selected values
+  if (selectedTeam) {
+    document.getElementById('teamTitle').textContent = selectedTeam;
+  }
+  
+  if (selectedTeam && selectedChoice) {
+    document.getElementById('tossResult').textContent = 
+      `${selectedTeam} won the toss and elected to ${selectedChoice.toLowerCase()}`;
+  }
+
+  // Update player names if they exist
+  if (player1) {
+    document.getElementById('player1').textContent = player1;
+  }
+  if (player2) {
+    document.getElementById('player2').textContent = player2;
+  }
+
+  let runs = 0;
+  let wickets = 0;
+
+  const scoreButtons = document.querySelectorAll('.score-btn');
+  scoreButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      const action = e.target.innerText.trim();
+
+      if (action === 'OUT') {
+        wickets++;
+        updateScore();
+      } else if (action === 'UNDO') {
+        // Add undo logic if needed
+      } else if (['WD', 'NB', 'BYE', 'LB'].includes(action)) {
+        // Handle extras logic if needed
+      } else if (action.includes('4')) {
+        runs += 4;
+        updateScore();
+      } else if (action.includes('6')) {
+        runs += 6;
+        updateScore();
+      } else {
+        const num = parseInt(action);
+        if (!isNaN(num)) {
+          runs += num;
+          updateScore();
+        }
+      }
+    });
+  });
+
+  function updateScore() {
+    const scoreDisplay = document.getElementById('score');
+    scoreDisplay.innerText = `${runs}/${wickets} (0/10)`;  // Overs adjust manually if needed
+  }
+</script>
+
+
+
+<script>
+  // Get the selected choice from sessionStorage
+  
+  
+  // Update toss result if it exists
+  if (selectedChoice) {
+    document.getElementById('tossResult').textContent = 
+      `{{ team_a_name }} won the toss and elected to ${selectedChoice.toLowerCase()}`;
+  }
+
+  // Rest of your JavaScript remains the same
+</script>
+{% endblock %}
